@@ -1,0 +1,17 @@
+id: catalog_api
+display_name: Fynd Catalog API
+mcp_server: avengers.connectors.catalog_api:server
+auth:
+  type: bearer
+  token_ref: secret://${tenant.id}/catalog_api/api_key
+scopes: [catalog.read]
+rbac:
+  required_groups_any: [fynd-internal]
+tools:
+  - name: list_flagged
+    description: Listings flagged for missing attributes, MAP violations, or low-quality images.
+    write: false
+    rate_limit_per_min: 60
+caching:
+  ttl_seconds: 600
+  key_fields: [category, severity]

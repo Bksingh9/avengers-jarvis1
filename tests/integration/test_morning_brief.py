@@ -50,6 +50,9 @@ def _ctx() -> TenantContext:
             audit=AuditCfg(bucket="b"),
             budgets=BudgetCfg(daily_usd_cap=100, per_user_usd_cap=10),
             llm_routing=LLMRoutingCfg(default="fake:m1"),
+            # Director now respects per-tenant agents_enabled (BRD-Fynd batch).
+            # Specialists not in this list are filtered out of the fan-out.
+            agents_enabled=["meetings", "markets", "research"],
         )
     )
 

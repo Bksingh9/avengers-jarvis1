@@ -1,0 +1,20 @@
+id: catalog
+display_name: Catalog Quality
+version: 1.0.0
+description: Flags listings with missing attributes, MAP violations, or low-quality images.
+model:
+  primary: anthropic:claude-sonnet-4-6
+  fallback: anthropic:claude-haiku-4-5
+  temperature: 0.1
+prompt: prompts/catalog.md
+input_schema: CatalogInput
+output_schema: CatalogDigest
+tools:
+  mcp: [catalog_api]
+limits:
+  max_turns: 6
+  wallclock_seconds: 60
+policies: [cite_every_claim, no_pii_to_external_search]
+evals:
+  set: evals/cases/catalog/*.yaml
+  gate_score: 0.85

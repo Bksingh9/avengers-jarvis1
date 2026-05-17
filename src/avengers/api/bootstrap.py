@@ -9,11 +9,14 @@ from __future__ import annotations
 from pathlib import Path
 
 from avengers.agents.base import AgentDeps
+from avengers.agents.catalog import CatalogAgent
 from avengers.agents.content import ContentAgent
 from avengers.agents.director import Director
+from avengers.agents.inventory import InventoryAgent
 from avengers.agents.markets import MarketsAgent
 from avengers.agents.meetings import MeetingsAgent
 from avengers.agents.operations import OperationsAgent
+from avengers.agents.reconciliation import ReconciliationAgent
 from avengers.agents.research import ResearchAgent
 from avengers.agents.security import SecurityAgent
 from avengers.api.app import AppContainer
@@ -37,6 +40,10 @@ _SPECIALIST_CLASSES = {
     "research": ResearchAgent,
     "content": ContentAgent,
     "operations": OperationsAgent,
+    # Fynd-specific (BRD §9.2)
+    "catalog": CatalogAgent,
+    "inventory": InventoryAgent,
+    "reconciliation": ReconciliationAgent,
 }
 
 

@@ -19,7 +19,10 @@ from pydantic import BaseModel
 from avengers.api.app import create_app
 from avengers.api.bootstrap import build_container
 from avengers.connectors.base import ConnectorRegistry
+from avengers.connectors.boltic import BolticConnector
+from avengers.connectors.catalog_api import CatalogAPIConnector
 from avengers.connectors.fake_connector import FakeConnector
+from avengers.connectors.fynd_oms import FyndOMSConnector
 from avengers.core.tenant import TenantContext
 from avengers.identity.static_provider import StaticIdentityProvider
 from avengers.llm.base import Capability, LLMProvider, LLMRegistry
@@ -47,6 +50,26 @@ def _seed_users() -> list[User]:
             display_name="Bob",
             timezone="Asia/Kolkata",
         ),
+        # Fynd-internal tenant (BRD §9.1) — admin + group-gated for RBAC.
+        User(
+            id="fynd-alice",
+            tenant_id="fynd_internal",
+            email="alice@fynd.com",
+            display_name="Alice (Fynd)",
+            groups={"avengers-admin", "fynd-internal"},
+            timezone="Asia/Kolkata",
+            delivery_prefs=DeliveryPrefs(channels=["console"]),
+        ),
+        # User in the Fynd tenant *without* the fynd-internal group — used to
+        # demonstrate the RBAC gate on Fynd-only connectors.
+        User(
+            id="fynd-guest",
+            tenant_id="fynd_internal",
+            email="guest@fynd.com",
+            display_name="Guest (Fynd)",
+            groups=set(),
+            timezone="Asia/Kolkata",
+        ),
     ]
 
 
@@ -65,6 +88,10 @@ _DEMO_DIGESTS: dict[str, str] = {
     "ResearchDigest": f'{{"topic_deltas":[{_SEED_CLAIM}],"deep_dive":[]}}',
     "ContentDigest":  f'{{"drafts":[],"publish_candidates":[{_SEED_CLAIM}]}}',
     "OpsDigest":      f'{{"kpi_deltas":[{_SEED_CLAIM}],"queue_health":[],"on_call":[]}}',
+    # Fynd-specific (BRD §9.2)
+    "CatalogDigest":        f'{{"flagged_listings":[{_SEED_CLAIM}],"missing_attributes":[],"pricing_violations":[]}}',
+    "InventoryDigest":      f'{{"stockout_risks":[{_SEED_CLAIM}],"slow_movers":[],"transfer_recommendations":[]}}',
+    "ReconciliationDigest": f'{{"settlement_mismatches":[{_SEED_CLAIM}],"gst_anomalies":[],"returns_liability":[]}}',
 }
 
 
@@ -136,6 +163,11 @@ def _build():  # type: ignore[no-untyped-def]
             [ToolSchema(name="search", description="web search", parameters={"type": "object"})],
         )
     )
+    # Fynd-specific connectors (BRD §9.1 / §9.2) — skeleton MCPs with realistic
+    # stub payloads so the dashboard renders without live Fynd OMS / Boltic.
+    connectors.register(FyndOMSConnector())
+    connectors.register(BolticConnector())
+    connectors.register(CatalogAPIConnector())
 
     return build_container(
         config_dir=_REPO / "config",

@@ -1,0 +1,22 @@
+id: reconciliation
+display_name: Finance Reconciliation
+version: 1.0.0
+description: Settlement mismatches across marketplaces, GST anomalies, returns liability.
+model:
+  primary: anthropic:claude-sonnet-4-6
+  fallback: anthropic:claude-haiku-4-5
+  temperature: 0.1
+prompt: prompts/reconciliation.md
+input_schema: ReconciliationInput
+output_schema: ReconciliationDigest
+tools:
+  mcp: [fynd_oms]
+limits:
+  max_turns: 6
+  wallclock_seconds: 60
+policies: [cite_every_claim, block_writes]
+human_in_the_loop:
+  required_for: [post_journal_entry, raise_dispute]
+evals:
+  set: evals/cases/reconciliation/*.yaml
+  gate_score: 0.90

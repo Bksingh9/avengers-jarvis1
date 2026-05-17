@@ -2,7 +2,21 @@ import type { Config } from "tailwindcss";
 
 const config: Config = {
   darkMode: ["class"],
-  content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
+  content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./lib/**/*.{ts,tsx}"],
+  // The section-card's accent strip uses `bg-${meta.color}` — a dynamic class
+  // name Tailwind can't see statically. Safelist every agent color so the JIT
+  // emits them. Add new agents here when you add them to AGENT_META.
+  safelist: [
+    "bg-agent-meetings",
+    "bg-agent-markets",
+    "bg-agent-security",
+    "bg-agent-research",
+    "bg-agent-content",
+    "bg-agent-operations",
+    "bg-agent-catalog",
+    "bg-agent-inventory",
+    "bg-agent-reconciliation",
+  ],
   theme: {
     container: { center: true, padding: "2rem", screens: { "2xl": "1400px" } },
     extend: {
@@ -28,6 +42,9 @@ const config: Config = {
         "agent-research": "hsl(210 80% 65%)",
         "agent-content":  "hsl(35  90% 60%)",
         "agent-operations": "hsl(50 90% 60%)",
+        "agent-catalog":        "hsl(330 80% 65%)",
+        "agent-inventory":      "hsl(190 75% 55%)",
+        "agent-reconciliation": "hsl(120 60% 55%)",
       },
       borderRadius: { lg: "1rem", md: "0.75rem", sm: "0.5rem" },
       backgroundImage: {

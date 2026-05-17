@@ -1,0 +1,36 @@
+id: fynd_internal
+name: Fynd Internal
+region: ap-south-1
+locale: en-IN
+timezone: Asia/Kolkata
+identity:
+  provider: oidc
+  issuer: https://idp.fynd.com
+  client_id_ref: secret://fynd_internal/oidc/client_id
+  client_secret_ref: secret://fynd_internal/oidc/client_secret
+  group_claim: groups
+secrets_namespace: avengers/fynd_internal
+kms_key_arn: arn:aws:kms:ap-south-1:000000000000:key/fynd-internal
+audit:
+  bucket: avengers-audit-fynd-internal
+  retention_years: 7
+  pii_redaction: strict
+budgets:
+  daily_usd_cap: 1000
+  per_user_usd_cap: 5.0
+  alert_threshold_pct: 80
+llm_routing:
+  default: anthropic:claude-sonnet-4-6
+  classifiers: anthropic:claude-haiku-4-5
+delivery:
+  default_channels: [console]
+agents_enabled:
+  - meetings
+  - markets
+  - security
+  - research
+  - content
+  - operations
+  - catalog
+  - inventory
+  - reconciliation

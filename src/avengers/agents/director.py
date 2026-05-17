@@ -50,7 +50,11 @@ class Director:
 
     async def run_morning(self, input_: DirectorInput, ctx: TenantContext) -> MorningBrief:
         t0 = time.monotonic()
-        enabled = input_.agents or list(self.specialists)
+        # Honour the tenant's `agents_enabled` list — the Director holds every
+        # specialist class the platform knows, but a tenant only runs its
+        # configured subset. Callers can also pass `input_.agents` to override.
+        tenant_enabled = set(ctx.tenant.agents_enabled)
+        enabled = input_.agents or [a for a in self.specialists if a in tenant_enabled]
         to_run = [a for a in enabled if a not in input_.kill_switched and a in self.specialists]
         skipped = [a for a in enabled if a in input_.kill_switched]
 

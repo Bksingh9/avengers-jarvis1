@@ -42,7 +42,10 @@ async def stream(
     assert ctx.user is not None
     target_date = body.for_date or date.today()
     director = container.director
-    enabled = list(director.specialists)
+    # Only stream the specialists this tenant has enabled. The Director holds
+    # every registered specialist class; tenants pick their subset in YAML.
+    tenant_enabled = set(ctx.tenant.agents_enabled)
+    enabled = [a for a in director.specialists if a in tenant_enabled]
 
     # Per-section queue so we can stream as each completes.
     queue: asyncio.Queue[tuple[str, dict] | None] = asyncio.Queue()

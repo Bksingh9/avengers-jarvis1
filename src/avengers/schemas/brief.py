@@ -107,6 +107,34 @@ class OpsDigest(BaseModel):
     on_call: list[Cited] = Field(default_factory=list)
 
 
+# Fynd-specific digests (BRD §9.1 / §9.2) — shape mirrors the six reference
+# specialists above so the Director and dashboard treat them uniformly.
+
+
+class CatalogDigest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    flagged_listings: list[Cited] = Field(default_factory=list)
+    missing_attributes: list[Cited] = Field(default_factory=list)
+    pricing_violations: list[Cited] = Field(default_factory=list)
+
+
+class InventoryDigest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    stockout_risks: list[Cited] = Field(default_factory=list)
+    slow_movers: list[Cited] = Field(default_factory=list)
+    transfer_recommendations: list[Cited] = Field(default_factory=list)
+
+
+class ReconciliationDigest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    settlement_mismatches: list[Cited] = Field(default_factory=list)
+    gst_anomalies: list[Cited] = Field(default_factory=list)
+    returns_liability: list[Cited] = Field(default_factory=list)
+
+
 class MorningBrief(BaseModel):
     """The aggregated daily brief for one user on one date."""
 

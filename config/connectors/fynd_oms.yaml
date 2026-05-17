@@ -1,0 +1,25 @@
+id: fynd_oms
+display_name: Fynd OMS
+mcp_server: avengers.connectors.fynd_oms:server
+auth:
+  type: bearer
+  token_ref: secret://${tenant.id}/fynd_oms/api_key
+scopes: [orders.read, returns.read]
+rbac:
+  required_groups_any: [fynd-internal]
+tools:
+  - name: list_orders
+    description: Recent orders, optionally filtered by status.
+    write: false
+    rate_limit_per_min: 60
+  - name: fulfillment_health
+    description: RTO%, NDR pile-up, courier SLA breaches.
+    write: false
+    rate_limit_per_min: 30
+  - name: returns_queue
+    description: Pending refund / return tickets older than age_days.
+    write: false
+    rate_limit_per_min: 30
+caching:
+  ttl_seconds: 300
+  key_fields: [status, limit, age_days]

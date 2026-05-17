@@ -1,0 +1,20 @@
+id: inventory
+display_name: Inventory Risk
+version: 1.0.0
+description: Stockout-in-N-days projections, slow movers, cross-warehouse transfer recommendations.
+model:
+  primary: anthropic:claude-sonnet-4-6
+  fallback: anthropic:claude-haiku-4-5
+  temperature: 0.2
+prompt: prompts/inventory.md
+input_schema: InventoryInput
+output_schema: InventoryDigest
+tools:
+  mcp: [fynd_oms, boltic]
+limits:
+  max_turns: 8
+  wallclock_seconds: 60
+policies: [cite_every_claim]
+evals:
+  set: evals/cases/inventory/*.yaml
+  gate_score: 0.85

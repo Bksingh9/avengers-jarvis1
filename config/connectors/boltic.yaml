@@ -1,0 +1,25 @@
+id: boltic
+display_name: Boltic Data Integration
+mcp_server: avengers.connectors.boltic:server
+auth:
+  type: bearer
+  token_ref: secret://${tenant.id}/boltic/api_key
+scopes: [pipelines.read, runs.read]
+rbac:
+  required_groups_any: [fynd-internal]
+tools:
+  - name: list_pipelines
+    description: Names + last-run status of every pipeline in the workspace.
+    write: false
+    rate_limit_per_min: 30
+  - name: recent_runs
+    description: Execution history for one pipeline.
+    write: false
+    rate_limit_per_min: 60
+  - name: failed_jobs
+    description: Failed jobs across all pipelines in the rolling window.
+    write: false
+    rate_limit_per_min: 30
+caching:
+  ttl_seconds: 300
+  key_fields: [pipeline_id, hours, window_hours]
