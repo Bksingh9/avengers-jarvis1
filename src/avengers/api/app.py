@@ -22,6 +22,7 @@ from avengers.core.policy import PolicyEngine
 from avengers.delivery.base import DeliveryChannel
 from avengers.identity.base import IdentityProvider
 from avengers.llm.router import LLMRouter
+from avengers.memory.base import MemoryStore
 from avengers.memory.fs_memory import FilesystemMemory
 from avengers.workflows.approval import ApprovalQueue
 
@@ -40,7 +41,8 @@ class AppContainer:
     director: Director
     delivery_channels: dict[str, DeliveryChannel] = field(default_factory=dict)
     budget: BudgetTracker | None = None
-    memory: FilesystemMemory | None = None
+    memory: FilesystemMemory | None = None      # filesystem markdown handoff
+    vector_memory: MemoryStore | None = None    # RAG vector store (pgvector/in-mem/etc.)
     last_briefs: dict[str, Any] = field(default_factory=dict)
     # ^ in-memory map (tenant_id, user_id, for_date) -> MorningBrief; production
     #   reads from Postgres instead.
@@ -53,6 +55,7 @@ def create_app(container: AppContainer) -> FastAPI:
         approvals,
         briefs,
         jarvis,
+        memory,
         scim,
         stream,
         tenants,
@@ -131,6 +134,7 @@ def create_app(container: AppContainer) -> FastAPI:
     app.include_router(scim.router)
     app.include_router(admin.router)
     app.include_router(jarvis.router)
+    app.include_router(memory.router)
     return app
 
 

@@ -29,7 +29,9 @@ from avengers.delivery.console_channel import ConsoleChannel
 from avengers.identity.base import IdentityProvider
 from avengers.llm.base import LLMRegistry
 from avengers.llm.router import LLMRouter
+from avengers.memory.base import MemoryStore
 from avengers.memory.fs_memory import FilesystemMemory
+from avengers.memory.in_memory_store import InMemoryStore
 from avengers.workflows.approval import ApprovalQueue
 
 
@@ -56,6 +58,7 @@ def build_container(
     memory_root: Path | None = None,
     auditor: Auditor | None = None,
     personas_root: Path | None = None,
+    vector_memory: MemoryStore | None = None,
 ) -> AppContainer:
     store = ConfigStore(config_dir)
     store.reload()
@@ -93,6 +96,9 @@ def build_container(
 
     director = Director(deps=deps, specialists=specialists)
     memory = FilesystemMemory(memory_root) if memory_root else None
+    # Default the vector store to in-process so /memory/ingest works out of
+    # the box. Production wires PgVectorStore / TurbopufferStore / Pinecone.
+    vector_memory = vector_memory or InMemoryStore()
 
     return AppContainer(
         config_store=store,
@@ -106,4 +112,5 @@ def build_container(
         delivery_channels={"console": ConsoleChannel()},
         budget=deps.budget,
         memory=memory,
+        vector_memory=vector_memory,
     )

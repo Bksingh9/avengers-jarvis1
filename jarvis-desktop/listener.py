@@ -43,6 +43,8 @@ import requests
 import sounddevice as sd
 import speech_recognition as sr
 
+import intents  # local action dispatcher
+
 # ---------- configuration --------------------------------------------------
 
 API_BASE   = os.environ.get("JARVIS_API_BASE", "https://your-fly-url.fly.dev").rstrip("/")
@@ -178,6 +180,19 @@ def listen_for_wake() -> None:
                 continue
 
             log.info("query: %s", query)
+
+            # Action-first routing: try local intents (open dashboard, run
+            # brief, play music, what time is it…) before falling through to
+            # the conversational backend. This is what makes JARVIS feel like
+            # a real assistant and not a chat box.
+            intent_result = intents.dispatch(query)
+            if intent_result is not None:
+                log.info("intent fired: %s", intent_result.spoken or "(silent)")
+                if not intent_result.quiet and intent_result.spoken:
+                    say(intent_result.spoken)
+                continue
+
+            # Conversational fallback — round-trip to /jarvis/converse on Render.
             resp = ask_jarvis(query)
             if not resp:
                 say("JARVIS backend is unreachable.")
