@@ -1,9 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "buildCommand": "cd web && npm install --no-audit --no-fund && npm run build",
+  "installCommand": "npm install --no-audit --no-fund && cd web && npm install --no-audit --no-fund",
+  "buildCommand": "cd web && npm run build",
   "outputDirectory": "web/.next",
-  "installCommand": "echo 'install handled in buildCommand'",
   "functions": {
     "api/[[...path]].py": {
       "runtime": "@vercel/python@4.3.0",
