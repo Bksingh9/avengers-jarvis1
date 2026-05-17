@@ -1,0 +1,46 @@
+# Files / directories that should NOT be bundled into any Vercel deployment.
+#
+# Particularly important for the Python serverless function at api/ — without
+# this, the root `node_modules/` (from the framework-detection shim) gets
+# swept in and pushes the function over Vercel's 250 MB unzipped size limit.
+
+# Node — installed at root by the install shim AND inside web/. Neither
+# belongs in the Python function bundle.
+node_modules
+web/node_modules
+
+# Next.js build output. The dashboard ships from web/.next via vercel.json's
+# outputDirectory; the Python function never imports it.
+.next
+web/.next
+
+# Local dev artifacts
+.env
+.env.local
+.env.*.local
+.python_version
+__pycache__
+*.pyc
+.pytest_cache
+.mypy_cache
+.ruff_cache
+
+# Tests + dev-only Python sources — keep the production runtime lean.
+tests
+evals
+.memory
+
+# Documentation + infra-as-code — not needed at runtime.
+*.md
+infra
+RELEASE_PLAN.md
+BRD.md
+CAPABILITIES.md
+SPEC.md
+DEPLOY.md
+
+# Editor / OS noise
+.DS_Store
+.vscode
+.idea
+*.swp
