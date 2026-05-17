@@ -1,0 +1,19 @@
+{
+  "name": "avengers-jarvis-root",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Root shim so Vercel can detect Next.js (in web/) while the Python backend at api/ still gets picked up. Real app lives at web/package.json.",
+  "scripts": {
+    "build": "cd web && npm install --no-audit --no-fund && npm run build",
+    "dev":   "cd web && npm run dev",
+    "start": "cd web && npm run start"
+  },
+  "dependencies": {
+    "next": "14.2.5",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
