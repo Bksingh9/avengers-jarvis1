@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
+import { FloatingVoice } from "@/components/jarvis/floating-voice";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { CommandShell } from "./command-shell";
@@ -25,7 +26,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
         </div>
         <CommandShell />
-        <Toaster position="bottom-right" theme="dark" richColors />
+        <FloatingVoice />
+        <Toaster position="bottom-left" theme="dark" richColors />
       </body>
     </html>
   );

@@ -44,22 +44,28 @@ cd web && npm run type-check && npm run build
 npm run test:e2e:install && npm run test:e2e   # browser e2e
 ```
 
-## One-click deploy (no CLI install needed)
+## One-click deploy — everything on Vercel
 
-**Step 1 — backend on Render** (free tier, Singapore region, ~3 min build):
+Frontend (Next.js dashboard) AND backend (FastAPI via Python serverless) live
+in the same Vercel project. No separate backend host, no env var to wire up.
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Bksingh9/avengers-jarvis)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FBksingh9%2Favengers-jarvis&project-name=avengers-jarvis&repository-name=avengers-jarvis)
 
-Render reads `avengers/render.yaml` automatically. After it goes green, copy the
-service URL (e.g. `https://avengers-api.onrender.com`).
+**Important:** When Vercel imports the repo, **leave the Root Directory field
+empty** (don't set it to `web`). The top-level `vercel.json` builds Next.js
+from `web/` and Python serverless functions from `api/` in one shot.
 
-**Step 2 — dashboard on Vercel** (free tier, ~1 min build):
+If you already imported with Root Directory set to `web`:
+1. Open your project on vercel.com
+2. **Settings → General → Root Directory** → clear the field → **Save**
+3. **Deployments** → **Redeploy** the latest
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FBksingh9%2Favengers-jarvis&root-directory=web&env=AVENGERS_API_INTERNAL&envDescription=Your%20Render%20backend%20URL&project-name=avengers-jarvis&repository-name=avengers-jarvis)
+After deploy succeeds:
+- Dashboard: `https://<your-project>.vercel.app/dashboard`
+- API: `https://<your-project>.vercel.app/api/avengers/healthz`
+- Voice: tap the floating orb at the bottom-right of any page
 
-When Vercel asks for `AVENGERS_API_INTERNAL`, paste the Render URL from step 1.
-
-**Step 3 — verify it works** (Playwright runs on your Mac):
+**Step 2 — verify it works** (Playwright runs on your Mac):
 
 ```bash
 cd avengers/web

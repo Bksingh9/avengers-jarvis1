@@ -1,0 +1,30 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "buildCommand": "cd web && npm install --no-audit --no-fund && npm run build",
+  "outputDirectory": "web/.next",
+  "installCommand": "echo 'install handled in buildCommand'",
+  "functions": {
+    "api/[[...path]].py": {
+      "runtime": "@vercel/python@4.3.0",
+      "maxDuration": 60,
+      "memory": 1024,
+      "includeFiles": "{src,config,prompts,memory}/**"
+    }
+  },
+  "rewrites": [
+    { "source": "/api/avengers/:path*", "destination": "/api/:path*" }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-transform" },
+        { "key": "X-Accel-Buffering", "value": "no" }
+      ]
+    }
+  ],
+  "crons": [
+    { "path": "/api/cron/jarvis-proactive", "schedule": "30 1 * * *" }
+  ]
+}
