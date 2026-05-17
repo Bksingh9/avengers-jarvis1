@@ -2,16 +2,14 @@
 #
 # Deploy in 60 seconds:
 #   1. Open https://render.com → Sign up / Sign in with GitHub
-#   2. New + → Blueprint → connect Bksingh9/thrive-record-hub
+#   2. New + → Blueprint → connect Bksingh9/avengers-jarvis
 #   3. Render auto-detects this file; click "Apply"
 #   4. Wait ~5 min for the first build; note the assigned hostname
 #      (e.g. https://avengers-api.onrender.com)
 #   5. Paste that hostname into Vercel's AVENGERS_API_INTERNAL env var
 #
-# Free tier: this service uses 512 MB / shared CPU. Render spins it down
-# after 15 minutes of inactivity and cold-starts on the next request
-# (~10 s). Upgrade to "Starter" ($7/mo) to keep it warm — important for
-# the JARVIS morning brief.
+# Free tier: 512 MB / shared CPU. Render spins it down after 15 minutes of
+# inactivity (~10 s cold-start). Upgrade to "Starter" ($7/mo) to keep warm.
 
 services:
   - type: web
@@ -19,12 +17,10 @@ services:
     runtime: docker
     region: singapore                # closest free-tier region to Mumbai
     plan: free
-    rootDir: avengers
     dockerfilePath: infra/docker/Dockerfile.api
     dockerContext: .
     healthCheckPath: /healthz
-    autoDeploy: true                  # redeploy on every push to main branch
-    branch: claude/build-avengers-platform-poDQP
+    autoDeploy: true                  # redeploy on every push to main
     envVars:
       - key: AVENGERS_ENVIRONMENT
         value: production

@@ -48,14 +48,14 @@ npm run test:e2e:install && npm run test:e2e   # browser e2e
 
 **Step 1 — backend on Render** (free tier, Singapore region, ~3 min build):
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Bksingh9/thrive-record-hub)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Bksingh9/avengers-jarvis)
 
 Render reads `avengers/render.yaml` automatically. After it goes green, copy the
 service URL (e.g. `https://avengers-api.onrender.com`).
 
 **Step 2 — dashboard on Vercel** (free tier, ~1 min build):
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FBksingh9%2Fthrive-record-hub&root-directory=avengers%2Fweb&env=AVENGERS_API_INTERNAL&envDescription=Your%20Render%20backend%20URL&envLink=https%3A%2F%2Fgithub.com%2FBksingh9%2Fthrive-record-hub%23one-click-deploy&project-name=avengers-jarvis&repository-name=avengers-jarvis)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FBksingh9%2Favengers-jarvis&root-directory=web&env=AVENGERS_API_INTERNAL&envDescription=Your%20Render%20backend%20URL&project-name=avengers-jarvis&repository-name=avengers-jarvis)
 
 When Vercel asks for `AVENGERS_API_INTERNAL`, paste the Render URL from step 1.
 
