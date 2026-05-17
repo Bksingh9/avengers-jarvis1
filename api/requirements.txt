@@ -1,6 +1,14 @@
+# Minimal deps for the Vercel Python serverless function. Anything not
+# imported on the request path of the demo (DemoLLMProvider) has been
+# removed so the function fits Vercel's 250 MB unzipped limit.
+#
+# Notably dropped:
+#   pydantic[email]     → pydantic only; identity.py uses a regex check
+#   pydantic-settings   → only used by avengers/settings.py (not on path)
+#   httpx               → only used by OIDC adapter (not imported by demo)
+#   python-dateutil     → not imported anywhere in src/
+
 fastapi==0.118.3
-pydantic[email]==2.12.3
-pydantic-settings==2.11.0
+pydantic==2.12.3
 PyYAML==6.0.3
-httpx==0.28.1
 mangum==0.17.0
