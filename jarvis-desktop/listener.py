@@ -104,7 +104,12 @@ def transcribe(wav_path: Path) -> str | None:
 
 def ask_jarvis(query: str) -> dict | None:
     """POST to /jarvis/converse. Returns the parsed JSON or None on error."""
-    url = f"{API_BASE}/api/avengers/tenants/{TENANT}/jarvis/converse"
+    # JARVIS_API_BASE should include any path prefix needed for your host:
+    #   Direct Render:    https://avengers-api-k2x6.onrender.com    (no prefix)
+    #   Through Vercel:   https://<your-app>.vercel.app/api/avengers (Vercel rewrites to Render)
+    # If unset, override via the JARVIS_API_PATH_PREFIX env var.
+    prefix = os.environ.get("JARVIS_API_PATH_PREFIX", "")
+    url = f"{API_BASE}{prefix}/tenants/{TENANT}/jarvis/converse"
     try:
         r = requests.post(
             url,
