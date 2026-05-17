@@ -1,0 +1,27 @@
+id: acme
+name: ACME Corp
+region: ap-south-1
+locale: en-IN
+timezone: Asia/Kolkata
+identity:
+  provider: oidc
+  issuer: https://acme.okta.com
+  client_id_ref: secret://acme/okta/client_id
+  client_secret_ref: secret://acme/okta/client_secret
+  group_claim: groups
+secrets_namespace: avengers/acme
+kms_key_arn: arn:aws:kms:ap-south-1:000000000000:key/acme
+audit:
+  bucket: avengers-audit-acme
+  retention_years: 7
+  pii_redaction: strict
+budgets:
+  daily_usd_cap: 250
+  per_user_usd_cap: 1.50
+  alert_threshold_pct: 80
+llm_routing:
+  default: anthropic:claude-sonnet-4-6
+  classifiers: anthropic:claude-haiku-4-5
+delivery:
+  default_channels: [console, email]
+agents_enabled: [meetings, markets, security, research, content, operations]

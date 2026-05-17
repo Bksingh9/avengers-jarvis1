@@ -1,0 +1,17 @@
+id: exa_search
+display_name: Exa web search
+mcp_server: avengers.connectors.exa_search:server
+auth:
+  type: bearer
+  token_ref: secret://${tenant.id}/exa/api_key
+scopes: [search]
+rbac:
+  required_groups_any: []
+tools:
+  - name: search
+    description: Run a web search and return top results.
+    write: false
+    rate_limit_per_min: 30
+caching:
+  ttl_seconds: 600
+  key_fields: [query]

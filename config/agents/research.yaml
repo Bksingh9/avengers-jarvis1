@@ -1,0 +1,33 @@
+id: research
+display_name: Research
+version: 1.0.0
+description: Daily digest on configured topics and on-demand deep dives.
+model:
+  primary: anthropic:claude-sonnet-4-6
+  fallback: anthropic:claude-haiku-4-5
+  max_thinking_tokens: 0
+  temperature: 0.2
+prompt: prompts/research.md
+input_schema: ResearchInput
+output_schema: ResearchDigest
+tools:
+  builtin: []
+  mcp:
+    - exa_search
+limits:
+  max_turns: 6
+  max_tokens_in: 200000
+  max_tokens_out: 4000
+  wallclock_seconds: 60
+policies:
+  - no_pii_to_external_search
+  - cite_every_claim
+human_in_the_loop:
+  required_for: []
+schedule:
+  morning_brief:
+    cron: "0 6 * * MON-FRI"
+    timezone: Asia/Kolkata
+evals:
+  set: evals/cases/research/*.yaml
+  gate_score: 0.85

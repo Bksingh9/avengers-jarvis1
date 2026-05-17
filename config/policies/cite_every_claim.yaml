@@ -1,0 +1,8 @@
+id: cite_every_claim
+description: Drop any digest claim that lacks at least one source.
+when: post_tool
+match:
+  agent: any
+condition: digest_has_unsourced_claims
+action: rewrite
+mutate: drop_unsourced_claims

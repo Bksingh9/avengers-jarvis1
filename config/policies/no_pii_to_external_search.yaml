@@ -1,0 +1,14 @@
+id: no_pii_to_external_search
+description: Block sending detected PII to non-internal search tools.
+when: pre_tool
+match:
+  tool.name:
+    in:
+      - exa_search.search
+      - news.search
+      - WebSearch
+condition: contains_pii
+action: deny
+audit:
+  severity: high
+  code: PII_BLOCK

@@ -1,0 +1,10 @@
+id: block_writes
+description: Any tool that writes external state requires human approval.
+when: pre_tool
+match:
+  tool.write: true
+condition: not_has_approval
+action: enqueue_approval
+audit:
+  severity: warn
+  code: WRITE_GATE
