@@ -52,6 +52,7 @@ def create_app(container: AppContainer) -> FastAPI:
         agents,
         approvals,
         briefs,
+        jarvis,
         scim,
         stream,
         tenants,
@@ -97,6 +98,7 @@ def create_app(container: AppContainer) -> FastAPI:
     app.include_router(approvals.router)
     app.include_router(scim.router)
     app.include_router(admin.router)
+    app.include_router(jarvis.router)
     return app
 
 

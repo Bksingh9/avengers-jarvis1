@@ -55,6 +55,7 @@ def build_container(
     connectors: ConnectorRegistry,
     memory_root: Path | None = None,
     auditor: Auditor | None = None,
+    personas_root: Path | None = None,
 ) -> AppContainer:
     store = ConfigStore(config_dir)
     store.reload()
@@ -62,12 +63,25 @@ def build_container(
     auditor = auditor or Auditor(InMemoryAuditSink())
     policies = PolicyEngine(store.policies())
     router = LLMRouter(registry=llm_registry)
+
+    # Optional per-tenant persona overlay. Files at
+    # `<personas_root>/<tenant_id>/persona.md` are loaded as
+    # `system_prompts["persona:<tenant_id>"]` and prepended to every agent
+    # prompt run for that tenant. This is how JARVIS gets its "Cap Brij"
+    # voice on top of the same six reference specialists ACME uses.
+    system_prompts: dict[str, str] = {}
+    if personas_root and personas_root.exists():
+        for persona_file in personas_root.glob("*/persona.md"):
+            tenant_id = persona_file.parent.name
+            system_prompts[f"persona:{tenant_id}"] = persona_file.read_text()
+
     deps = AgentDeps(
         router=router,
         connectors=connectors,
         policies=policies,
         auditor=auditor,
         budget=BudgetTracker(),
+        system_prompts=system_prompts,
     )
 
     specialists = {}

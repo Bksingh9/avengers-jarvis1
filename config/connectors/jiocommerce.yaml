@@ -1,0 +1,34 @@
+id: jiocommerce
+display_name: JioCommerce (platform.jiocommerce.io)
+mcp_server: avengers.connectors.jiocommerce:server
+auth:
+  type: api_key_with_company
+  api_key_ref: secret://${tenant.id}/jiocommerce/api_key
+  company_id_ref: secret://${tenant.id}/jiocommerce/company_id
+scopes: [orders.read, catalog.read, returns.read]
+rbac:
+  required_groups_any: [fynd-internal]
+tools:
+  - name: list_orders
+    description: Recent orders, optionally filtered by status.
+    write: false
+    rate_limit_per_min: 60
+  - name: fulfillment_health
+    description: RTO%, NDR pile-up, courier SLA breaches.
+    write: false
+    rate_limit_per_min: 30
+  - name: returns_queue
+    description: Pending refund / return tickets older than age_days.
+    write: false
+    rate_limit_per_min: 30
+  - name: search_catalog
+    description: Catalog search (JioCommerce Partners SDK catalog.getProducts).
+    write: false
+    rate_limit_per_min: 120
+  - name: list_flagged
+    description: Listings flagged for missing attributes / MAP violations / low image quality.
+    write: false
+    rate_limit_per_min: 60
+caching:
+  ttl_seconds: 300
+  key_fields: [status, limit, age_days, q, severity]

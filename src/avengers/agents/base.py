@@ -105,7 +105,7 @@ class BaseAgent(Generic[TOut]):
         metrics.incr("agent.runs", labels=agent_labels)
         tools, tool_index = await self._collect_tools()
         messages: list[Message] = [
-            Message(role="system", content=self._system_prompt()),
+            Message(role="system", content=self._system_prompt(ctx=ctx)),
             Message(role="user", content=json.dumps(input_payload, default=str)),
         ]
         total_cost = 0.0
@@ -324,16 +324,25 @@ class BaseAgent(Generic[TOut]):
 
     # ----- subclass hooks --------------------------------------------------
 
-    def _system_prompt(self) -> str:
-        """Look up the prompt by config.prompt path, otherwise use a stub."""
+    def _system_prompt(self, *, ctx: TenantContext | None = None) -> str:
+        """Look up the prompt by config.prompt path, otherwise use a stub.
+
+        When `ctx.tenant_id` has a registered persona overlay (e.g. `jarvis`),
+        it's prepended to the base prompt so the agent inherits the persona's
+        voice without losing its typed output contract.
+        """
         prompt = self.deps.system_prompts.get(self.config.id)
-        if prompt:
-            return prompt
-        return (
-            f"You are the {self.config.display_name} agent. "
-            f"Produce JSON conforming to the {self.output_schema.__name__} schema. "
-            "Every claim must include a sources array referring to tools you actually called."
-        )
+        if not prompt:
+            prompt = (
+                f"You are the {self.config.display_name} agent. "
+                f"Produce JSON conforming to the {self.output_schema.__name__} schema. "
+                "Every claim must include a sources array referring to tools you actually called."
+            )
+        if ctx is not None:
+            persona = self.deps.system_prompts.get(f"persona:{ctx.tenant_id}")
+            if persona:
+                prompt = f"{persona}\n\n---\n\n{prompt}"
+        return prompt
 
     def _parse_output(self, text: str) -> TOut:
         """Models are asked to emit JSON; tolerate ``` fences."""

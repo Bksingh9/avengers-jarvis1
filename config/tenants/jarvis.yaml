@@ -1,0 +1,35 @@
+id: jarvis
+name: JARVIS for Cap Brij
+region: ap-south-1
+locale: en-IN
+timezone: Asia/Kolkata
+identity:
+  provider: oidc
+  issuer: https://idp.local.jarvis
+  client_id_ref: secret://jarvis/oidc/client_id
+  client_secret_ref: secret://jarvis/oidc/client_secret
+  group_claim: groups
+secrets_namespace: avengers/jarvis
+kms_key_arn: arn:aws:kms:ap-south-1:000000000000:key/jarvis
+audit:
+  bucket: avengers-audit-jarvis
+  retention_years: 3
+  pii_redaction: strict
+budgets:
+  daily_usd_cap: 25
+  per_user_usd_cap: 25.0
+  alert_threshold_pct: 80
+llm_routing:
+  default: anthropic:claude-sonnet-4-6
+  classifiers: anthropic:claude-haiku-4-5
+delivery:
+  default_channels: [console, telegram]
+agents_enabled:
+  - meetings
+  - markets
+  - research
+  - content
+  - operations
+  - catalog
+  - inventory
+  - reconciliation

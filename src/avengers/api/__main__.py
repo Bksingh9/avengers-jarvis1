@@ -10,6 +10,7 @@ at real Bedrock + Postgres + S3 + OIDC.
 
 from __future__ import annotations
 
+import os
 from collections.abc import AsyncIterator
 from pathlib import Path
 from typing import Any
@@ -23,6 +24,7 @@ from avengers.connectors.boltic import BolticConnector
 from avengers.connectors.catalog_api import CatalogAPIConnector
 from avengers.connectors.fake_connector import FakeConnector
 from avengers.connectors.fynd_oms import FyndOMSConnector
+from avengers.connectors.jiocommerce import JioCommerceConnector
 from avengers.core.tenant import TenantContext
 from avengers.identity.static_provider import StaticIdentityProvider
 from avengers.llm.base import Capability, LLMProvider, LLMRegistry
@@ -69,6 +71,16 @@ def _seed_users() -> list[User]:
             display_name="Guest (Fynd)",
             groups=set(),
             timezone="Asia/Kolkata",
+        ),
+        # JARVIS tenant — Cap Brij (the one user this tenant exists for).
+        User(
+            id="cap-brij",
+            tenant_id="jarvis",
+            email="cap.brij@example.com",
+            display_name="Cap Brij",
+            groups={"avengers-admin", "fynd-internal", "jarvis-owner"},
+            timezone="Asia/Kolkata",
+            delivery_prefs=DeliveryPrefs(channels=["console", "telegram"]),
         ),
     ]
 
@@ -163,9 +175,14 @@ def _build():  # type: ignore[no-untyped-def]
             [ToolSchema(name="search", description="web search", parameters={"type": "object"})],
         )
     )
-    # Fynd-specific connectors (BRD §9.1 / §9.2) — skeleton MCPs with realistic
-    # stub payloads so the dashboard renders without live Fynd OMS / Boltic.
-    connectors.register(FyndOMSConnector())
+    # Fynd / Jio commerce backends — swappable via env so the same agents and
+    # prompts work against either. Set COMMERCE_BACKEND=jio to use only Jio,
+    # =fynd for only Fynd (default), =both to register both side-by-side.
+    backend = os.getenv("COMMERCE_BACKEND", "fynd").lower()
+    if backend in ("fynd", "both"):
+        connectors.register(FyndOMSConnector())
+    if backend in ("jio", "both"):
+        connectors.register(JioCommerceConnector())
     connectors.register(BolticConnector())
     connectors.register(CatalogAPIConnector())
 
@@ -175,6 +192,7 @@ def _build():  # type: ignore[no-untyped-def]
         llm_registry=reg,
         connectors=connectors,
         memory_root=_REPO / ".memory",
+        personas_root=_REPO / "memory",  # memory/<tenant>/persona.md
     )
 
 

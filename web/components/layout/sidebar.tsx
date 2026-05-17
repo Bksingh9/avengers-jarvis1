@@ -2,15 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, Cog, FileSearch, Inbox, LayoutDashboard, Sparkles, Users } from "lucide-react";
+import { Activity, BookOpen, Cog, FileSearch, Inbox, LayoutDashboard, Mic, Sparkles, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const nav = [
   { href: "/dashboard",  label: "Today",     icon: LayoutDashboard },
+  { href: "/jarvis",     label: "JARVIS",    icon: Mic },
   { href: "/agents",     label: "Agents",    icon: Users },
   { href: "/approvals",  label: "Approvals", icon: Inbox },
   { href: "/audit",      label: "Audit",     icon: FileSearch },
   { href: "/settings",   label: "Settings",  icon: Cog },
+  { href: "/setup",      label: "Setup",     icon: BookOpen },
 ];
 
 export function Sidebar() {

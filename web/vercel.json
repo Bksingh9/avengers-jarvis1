@@ -11,5 +11,11 @@
         { "key": "X-Accel-Buffering", "value": "no" }
       ]
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/jarvis-proactive",
+      "schedule": "30 1 * * *"
+    }
   ]
 }
