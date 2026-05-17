@@ -81,6 +81,38 @@ def create_app(container: AppContainer) -> FastAPI:
         allow_credentials=True,
     )
 
+    @app.get("/")
+    async def root() -> dict:
+        """Friendly root so curling the host doesn't 404.
+
+        The dashboard is a separate Next.js app — this endpoint just confirms
+        the backend is alive and points the caller at the right places.
+        """
+        return {
+            "name": "AVENGERS Control Plane",
+            "version": "0.1.0",
+            "status": "ok",
+            "tenants": len(container.config_store.all_tenants()),
+            "agents": len(container.config_store.all_agents()),
+            "endpoints": {
+                "health":     "GET  /healthz",
+                "tenant":     "GET  /tenants/{tenant_id}",
+                "agents":     "GET  /tenants/{tenant_id}/agents",
+                "brief":      "POST /tenants/{tenant_id}/briefs",
+                "stream":     "POST /tenants/{tenant_id}/briefs/stream",
+                "jarvis_say": "POST /tenants/{tenant_id}/jarvis/converse",
+                "jarvis_push":"POST /tenants/{tenant_id}/jarvis/proactive",
+                "approvals":  "GET  /tenants/{tenant_id}/approvals",
+                "openapi":    "GET  /docs",
+            },
+            "demo_tokens": {
+                "acme":          "Bearer user:alice",
+                "fynd_internal": "Bearer user:fynd-alice",
+                "jarvis":        "Bearer user:cap-brij",
+            },
+            "dashboard_url": "https://thrive-record-hub.vercel.app",
+        }
+
     @app.get("/healthz")
     async def healthz() -> dict:
         return {

@@ -1,0 +1,42 @@
+# Render.com "infrastructure as code" config.
+#
+# Deploy in 60 seconds:
+#   1. Open https://render.com → Sign up / Sign in with GitHub
+#   2. New + → Blueprint → connect Bksingh9/thrive-record-hub
+#   3. Render auto-detects this file; click "Apply"
+#   4. Wait ~5 min for the first build; note the assigned hostname
+#      (e.g. https://avengers-api.onrender.com)
+#   5. Paste that hostname into Vercel's AVENGERS_API_INTERNAL env var
+#
+# Free tier: this service uses 512 MB / shared CPU. Render spins it down
+# after 15 minutes of inactivity and cold-starts on the next request
+# (~10 s). Upgrade to "Starter" ($7/mo) to keep it warm — important for
+# the JARVIS morning brief.
+
+services:
+  - type: web
+    name: avengers-api
+    runtime: docker
+    region: singapore                # closest free-tier region to Mumbai
+    plan: free
+    rootDir: avengers
+    dockerfilePath: infra/docker/Dockerfile.api
+    dockerContext: .
+    healthCheckPath: /healthz
+    autoDeploy: true                  # redeploy on every push to main branch
+    branch: claude/build-avengers-platform-poDQP
+    envVars:
+      - key: AVENGERS_ENVIRONMENT
+        value: production
+      - key: AVENGERS_LOG_LEVEL
+        value: INFO
+      - key: AVENGERS_REGION
+        value: ap-south-1
+      - key: AVENGERS_CORS_ORIGINS
+        value: "https://*.vercel.app,http://localhost:3000"
+      - key: COMMERCE_BACKEND
+        value: both                   # registers both fynd_oms and jiocommerce
+      - key: CRON_SECRET
+        generateValue: true           # Render generates + injects a strong secret
+      - key: PORT
+        value: 8080

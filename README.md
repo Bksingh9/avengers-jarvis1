@@ -44,10 +44,32 @@ cd web && npm run type-check && npm run build
 npm run test:e2e:install && npm run test:e2e   # browser e2e
 ```
 
-## Hosted demo
+## One-click deploy (no CLI install needed)
 
-See [DEPLOY.md](./DEPLOY.md) — Vercel (web) + Fly.io (backend), ~10 minutes
-end-to-end with a Mumbai region for Fynd.
+**Step 1 — backend on Render** (free tier, Singapore region, ~3 min build):
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Bksingh9/thrive-record-hub)
+
+Render reads `avengers/render.yaml` automatically. After it goes green, copy the
+service URL (e.g. `https://avengers-api.onrender.com`).
+
+**Step 2 — dashboard on Vercel** (free tier, ~1 min build):
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FBksingh9%2Fthrive-record-hub&root-directory=avengers%2Fweb&env=AVENGERS_API_INTERNAL&envDescription=Your%20Render%20backend%20URL&envLink=https%3A%2F%2Fgithub.com%2FBksingh9%2Fthrive-record-hub%23one-click-deploy&project-name=avengers-jarvis&repository-name=avengers-jarvis)
+
+When Vercel asks for `AVENGERS_API_INTERNAL`, paste the Render URL from step 1.
+
+**Step 3 — verify it works** (Playwright runs on your Mac):
+
+```bash
+cd avengers/web
+npm install && npm run test:e2e:install
+PLAYWRIGHT_BASE_URL=https://<your-vercel-url> npx playwright test deployed-smoke.spec.ts
+```
+
+Five checks pass: backend health, dashboard redirect, JARVIS voice orb, setup wizard, agents registry.
+
+For the manual / advanced path (Fly.io, Helm, Terraform) see [DEPLOY.md](./DEPLOY.md).
 
 ## Layout
 
