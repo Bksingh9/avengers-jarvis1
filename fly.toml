@@ -1,0 +1,53 @@
+# Fly.io deployment for the AVENGERS FastAPI control plane.
+#
+# Usage:
+#   curl -L https://fly.io/install.sh | sh        # install flyctl once
+#   fly auth login
+#   cd avengers
+#   fly launch --copy-config --no-deploy           # adopt this fly.toml
+#   fly deploy                                     # build + ship
+#
+# The app name is taken from this file. If `avengers-api` is taken globally,
+# `fly launch` will offer to pick a different one — update the rewrite in
+# web/vercel.json to match.
+
+app = "avengers-api"
+primary_region = "bom"  # Mumbai — closest for Fynd
+
+[build]
+  dockerfile = "infra/docker/Dockerfile.api"
+
+[env]
+  AVENGERS_ENVIRONMENT = "production"
+  AVENGERS_LOG_LEVEL   = "INFO"
+  AVENGERS_REGION      = "ap-south-1"
+  # Comma-separated. `https://*.vercel.app` covers preview deployments;
+  # add your production custom domain here too once you set it.
+  AVENGERS_CORS_ORIGINS = "https://*.vercel.app,http://localhost:3000"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines  = "stop"
+  auto_start_machines = true
+  min_machines_running = 1   # keep one warm so the morning brief has no cold start
+
+  # SSE needs a long idle timeout — Fly's default 60s is too short for a
+  # streaming brief that can take 30-90s end-to-end.
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 100
+    hard_limit = 200
+
+[[http_service.checks]]
+  grace_period = "10s"
+  interval     = "30s"
+  method       = "GET"
+  path         = "/healthz"
+  protocol     = "http"
+  timeout      = "5s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "1gb"
+  cpus = 1

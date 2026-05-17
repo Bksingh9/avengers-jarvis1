@@ -6,6 +6,7 @@ stashed on `app.state.container` for the route modules to pull from.
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -59,9 +60,21 @@ def create_app(container: AppContainer) -> FastAPI:
 
     app = FastAPI(title="AVENGERS Control Plane", version="0.1.0")
     app.state.container = container
+
+    # CORS — env-driven so the deployed dashboard origin (Vercel, etc.) can be
+    # added without a code change. `AVENGERS_CORS_ORIGINS` is comma-separated;
+    # defaults cover local dev (Vite/Next) and the docker-compose web service.
+    default_origins = "http://localhost:3000,http://web:3000"
+    origins_csv = os.getenv("AVENGERS_CORS_ORIGINS", default_origins)
+    allow_origins = [o.strip() for o in origins_csv.split(",") if o.strip()]
+    # If any origin is a regex pattern (contains '*' or 'https://*.vercel.app'),
+    # use `allow_origin_regex` so Vercel preview URLs work too.
+    regex_origins = [o for o in allow_origins if "*" in o]
+    plain_origins = [o for o in allow_origins if "*" not in o]
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:3000", "http://web:3000"],
+        allow_origins=plain_origins,
+        allow_origin_regex=("|".join(_to_regex(o) for o in regex_origins)) or None,
         allow_methods=["*"],
         allow_headers=["*"],
         allow_credentials=True,
@@ -85,3 +98,15 @@ def create_app(container: AppContainer) -> FastAPI:
     app.include_router(scim.router)
     app.include_router(admin.router)
     return app
+
+
+def _to_regex(pattern: str) -> str:
+    """Turn `https://*.vercel.app` into the equivalent anchored regex.
+
+    Only `*` is treated as a wildcard. Everything else is escaped so a stray
+    `.` in the env value can't accidentally match an extra character.
+    """
+    import re
+
+    parts = pattern.split("*")
+    return "^" + ".*".join(re.escape(p) for p in parts) + "$"

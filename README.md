@@ -1,33 +1,53 @@
 # AVENGERS Platform
 
 Multi-tenant, multi-agent daily-briefing and on-demand command system for
-enterprises. Six reference specialists ship with v1 — Meetings, Markets,
-Security, Research, Content, Operations — orchestrated by a Director agent.
+enterprises. Nine specialists ship today — six reference (Meetings, Markets,
+Security, Research, Content, Operations) plus three Fynd-specific (Catalog,
+Inventory, Reconciliation) — orchestrated by a Director agent and rendered in
+a glassmorphism Next.js dashboard that streams briefs in real time.
 
-## What's in this repo right now
-
-This commit implements the foundation specified in SPEC.md §6–§9 plus stubs
-through §11:
+## Status snapshot
 
 | Section          | Status                                                |
 | ---------------- | ----------------------------------------------------- |
-| §6 Repo layout   | done                                                  |
-| §7 Config model  | done — Pydantic v2 models, YAML loader, hot reload    |
-| §8 Domain schemas| done — tenant, user, brief, digests, audit, approvals |
-| §9 Interfaces    | done — LLM, memory, identity, delivery, connector, policy |
-| §10 Agents       | base class + Director + 6 specialists scaffolded      |
-| §11 Workflows    | morning_brief, deep_dive, approval scaffolded         |
-| §12+             | TODO                                                  |
+| §6 Repo layout   | ✅                                                     |
+| §7 Config model  | ✅ Pydantic v2, YAML loader, hot reload                |
+| §8 Domain schemas| ✅ tenant, user, brief, digests, audit, approvals     |
+| §9 Interfaces    | ✅ LLM, memory, identity, delivery, connector, policy |
+| §10 Agents       | ✅ Director + 9 specialists                            |
+| §11 Workflows    | ✅ morning_brief (SSE), deep_dive, approval queue     |
+| §12 Security     | ✅ OIDC, SCIM, RBAC, S3 audit (Object Lock + KMS)     |
+| §13 Observability| ✅ metrics, tracing, Langfuse sink, eval harness      |
+| §14 Deployment   | ✅ Terraform modules, Helm chart, Dockerfiles         |
+| Dashboard        | ✅ Next.js 14 App Router, framer-motion, cmdk, SSE   |
+| Playwright e2e   | ✅ 3 specs in `web/tests/e2e/`                        |
+
+84 tests passing. Web build clean. Live-deploy path documented in `DEPLOY.md`.
 
 ## Quickstart (dev)
 
 ```bash
 cd avengers
-uv venv
-source .venv/bin/activate
-uv pip install -e ".[dev]"
-pytest -q
+pip install fastapi 'pydantic[email]' pydantic-settings pyyaml httpx uvicorn
+PYTHONPATH=src uvicorn avengers.api.__main__:app --port 8080
+# separate terminal
+cd web && npm install && npm run dev
+# open http://localhost:3000
 ```
+
+Full suite:
+
+```bash
+cd avengers
+python3 -m pytest tests -q                 # 84 passing
+cd web && npm run type-check && npm run build
+npm run test:e2e:install && npm run test:e2e   # browser e2e
+```
+
+## Hosted demo
+
+See [DEPLOY.md](./DEPLOY.md) — Vercel (web) + Fly.io (backend), ~10 minutes
+end-to-end with a Mumbai region for Fynd.
 
 ## Layout
 

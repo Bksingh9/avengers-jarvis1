@@ -7,22 +7,26 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:install": "playwright install --with-deps chromium"
   },
   "dependencies": {
+    "class-variance-authority": "0.7.0",
+    "clsx": "2.1.1",
+    "cmdk": "1.0.0",
+    "framer-motion": "11.3.19",
+    "lucide-react": "0.408.0",
     "next": "14.2.5",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "framer-motion": "11.3.19",
-    "lucide-react": "0.408.0",
-    "cmdk": "1.0.0",
     "sonner": "1.5.0",
     "swr": "2.2.5",
-    "clsx": "2.1.1",
-    "tailwind-merge": "2.4.0",
-    "class-variance-authority": "0.7.0"
+    "tailwind-merge": "2.4.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.46.0",
     "@types/node": "20.14.10",
     "@types/react": "18.3.3",
     "@types/react-dom": "18.3.0",
