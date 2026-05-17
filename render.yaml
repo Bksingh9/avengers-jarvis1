@@ -28,11 +28,15 @@ services:
         value: INFO
       - key: AVENGERS_REGION
         value: ap-south-1
+      # Wildcards for Vercel previews + Vercel production + localhost dev +
+      # the desktop wake-word helper (Origin: null when posted from a Python script).
       - key: AVENGERS_CORS_ORIGINS
-        value: "https://*.vercel.app,http://localhost:3000"
+        value: "https://*.vercel.app,http://localhost:3000,null"
       - key: COMMERCE_BACKEND
         value: both                   # registers both fynd_oms and jiocommerce
       - key: CRON_SECRET
         generateValue: true           # Render generates + injects a strong secret
-      - key: PORT
-        value: 8080
+      # NOTE: PORT is intentionally NOT set here. Render auto-assigns one
+      # (usually 10000) and injects it as $PORT — the Dockerfile reads
+      # `${PORT:-8080}` so it binds to whatever Render picks. Hardcoding
+      # PORT here would break Render's traffic routing.

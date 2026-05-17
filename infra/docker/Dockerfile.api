@@ -18,16 +18,24 @@ COPY --from=builder /install /usr/local
 COPY --chown=10001:10001 src ./src
 COPY --chown=10001:10001 config ./config
 COPY --chown=10001:10001 prompts ./prompts
+# JARVIS persona overlay (memory/<tenant>/persona.md) — without this the
+# `jarvis` tenant runs in default voice instead of "Cap Brij" voice.
+COPY --chown=10001:10001 memory ./memory
 
 ENV PYTHONPATH=/home/avengers/app/src \
     AVENGERS_CONFIG_DIR=/home/avengers/app/config \
     AVENGERS_PROMPTS_DIR=/home/avengers/app/prompts \
     AVENGERS_ENVIRONMENT=prod
 
+# Honour Render's $PORT env (Render injects PORT, we'd already bind to 8080
+# everywhere else). Fly + docker-compose + local all use 8080 by default.
 EXPOSE 8080
-HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-  CMD python -c "import urllib.request, sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8080/healthz', timeout=3).status==200 else 1)"
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD python -c "import urllib.request, sys, os; \
+    p=os.environ.get('PORT','8080'); \
+    sys.exit(0 if urllib.request.urlopen(f'http://localhost:{p}/healthz', timeout=3).status==200 else 1)"
 
 # Single worker — SSE pins one connection per worker for the duration of a
 # brief stream. Scale horizontally on Fly/k8s instead of via workers.
-CMD ["uvicorn", "avengers.api.__main__:app", "--host", "0.0.0.0", "--port", "8080"]
+# `--port ${PORT:-8080}` honours Render's PORT env without breaking Fly.
+CMD ["sh", "-c", "uvicorn avengers.api.__main__:app --host 0.0.0.0 --port ${PORT:-8080}"]
