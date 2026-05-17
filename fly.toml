@@ -23,7 +23,10 @@ primary_region = "bom"  # Mumbai — closest for Fynd
   AVENGERS_REGION      = "ap-south-1"
   # Comma-separated. `https://*.vercel.app` covers preview deployments;
   # add your production custom domain here too once you set it.
-  AVENGERS_CORS_ORIGINS = "https://*.vercel.app,http://localhost:3000"
+  # `null` origin covers the desktop wake-word helper which posts from
+  # a Python script (no Origin header → Origin: null).
+  AVENGERS_CORS_ORIGINS = "https://*.vercel.app,http://localhost:3000,null"
+  COMMERCE_BACKEND      = "both"
 
 [http_service]
   internal_port = 8080

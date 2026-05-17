@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  launchd manifest — auto-starts the JARVIS wake-word listener at login.
+
+  Install:
+    1. Edit the two TEMPLATE_* paths below to absolute paths on YOUR Mac.
+    2. cp com.capbrij.jarvis.plist ~/Library/LaunchAgents/
+    3. launchctl load ~/Library/LaunchAgents/com.capbrij.jarvis.plist
+    4. Confirm: launchctl list | grep capbrij
+
+  Stop / disable:
+    launchctl unload ~/Library/LaunchAgents/com.capbrij.jarvis.plist
+
+  Logs land in /tmp/jarvis-desktop.log + /tmp/jarvis-desktop.err
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.capbrij.jarvis</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>-c</string>
+    <string>cd TEMPLATE_REPO_PATH/jarvis-desktop &amp;&amp; /usr/bin/python3 listener.py</string>
+  </array>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>JARVIS_API_BASE</key>
+    <string>TEMPLATE_FLY_URL</string>
+    <key>JARVIS_TOKEN</key>
+    <string>user:cap-brij</string>
+    <key>JARVIS_TENANT</key>
+    <string>jarvis</string>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>/tmp/jarvis-desktop.log</string>
+  <key>StandardErrorPath</key>
+  <string>/tmp/jarvis-desktop.err</string>
+</dict>
+</plist>
