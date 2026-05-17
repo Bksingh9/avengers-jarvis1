@@ -37,6 +37,38 @@ function buildRewrites() {
 
 const nextConfig = {
   reactStrictMode: true,
+  // Standalone output pre-traces only the modules Next.js actually needs at
+  // runtime into .next/standalone/. Without this, Vercel's per-function nft
+  // greedily scans all of node_modules — which dumped 423 MB of Node into
+  // the Python function bundle and blew past the 250 MB serverless limit.
+  output: "standalone",
+  // Bump the trace root up to the repo root so excludes can target either
+  // ./node_modules (the framework-detection shim) or ./web/node_modules.
+  outputFileTracingRoot: process.cwd().endsWith("/web")
+    ? process.cwd() + "/.."
+    : process.cwd(),
+  // Belt-and-braces: explicitly exclude dev-only / oversized deps from
+  // any function bundle the trace produces.
+  outputFileTracingExcludes: {
+    "*": [
+      "**/node_modules/typescript/**",
+      "**/node_modules/@types/**",
+      "**/node_modules/playwright-core/**",
+      "**/node_modules/@playwright/**",
+      "**/node_modules/tailwindcss/**",
+      "**/node_modules/eslint/**",
+      "**/node_modules/eslint-*/**",
+      "**/node_modules/.cache/**",
+      "**/.next/cache/**",
+      // Kill any chance of the Python source / configs being swept into
+      // a Next.js function bundle (they belong to the Python function).
+      "src/**",
+      "config/**",
+      "prompts/**",
+      "memory/**",
+      "api/**",
+    ],
+  },
   async rewrites() {
     return buildRewrites();
   },
