@@ -10,6 +10,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from avengers.agents.director import Director
 from avengers.connectors.base import ConnectorRegistry
@@ -51,12 +52,20 @@ def create_app(container: AppContainer) -> FastAPI:
         approvals,
         briefs,
         scim,
+        stream,
         tenants,
         users,
     )
 
     app = FastAPI(title="AVENGERS Control Plane", version="0.1.0")
     app.state.container = container
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["http://localhost:3000", "http://web:3000"],
+        allow_methods=["*"],
+        allow_headers=["*"],
+        allow_credentials=True,
+    )
 
     @app.get("/healthz")
     async def healthz() -> dict:
@@ -71,6 +80,7 @@ def create_app(container: AppContainer) -> FastAPI:
     app.include_router(users.router)
     app.include_router(agents.router)
     app.include_router(briefs.router)
+    app.include_router(stream.router)
     app.include_router(approvals.router)
     app.include_router(scim.router)
     app.include_router(admin.router)

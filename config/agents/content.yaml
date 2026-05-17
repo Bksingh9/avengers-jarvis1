@@ -1,0 +1,22 @@
+id: content
+display_name: Content
+version: 1.0.0
+description: Draft posts, newsletters, comms; publish requires approval.
+model:
+  primary: anthropic:claude-sonnet-4-6
+  fallback: anthropic:claude-haiku-4-5
+  temperature: 0.4
+prompt: prompts/content.md
+input_schema: ContentInput
+output_schema: ContentDigest
+tools:
+  mcp: [cms, internal_rag]
+limits:
+  max_turns: 8
+  wallclock_seconds: 60
+policies: [cite_every_claim, block_writes]
+human_in_the_loop:
+  required_for: [publish]
+evals:
+  set: evals/cases/content/*.yaml
+  gate_score: 0.80

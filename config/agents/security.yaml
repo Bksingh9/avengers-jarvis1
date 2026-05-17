@@ -1,0 +1,22 @@
+id: security
+display_name: Security
+version: 1.0.0
+description: Open criticals, anomalies, items needing human approval.
+model:
+  primary: anthropic:claude-sonnet-4-6
+  fallback: anthropic:claude-haiku-4-5
+  temperature: 0.1
+prompt: prompts/security.md
+input_schema: SecurityInput
+output_schema: SecurityDigest
+tools:
+  mcp: [splunk, crowdstrike, github_security]
+limits:
+  max_turns: 6
+  wallclock_seconds: 60
+policies: [cite_every_claim, block_writes]
+human_in_the_loop:
+  required_for: [acknowledge, close]
+evals:
+  set: evals/cases/security/*.yaml
+  gate_score: 0.90

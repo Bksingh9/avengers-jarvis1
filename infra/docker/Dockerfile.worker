@@ -1,0 +1,21 @@
+# syntax=docker/dockerfile:1.7
+FROM python:3.11-slim AS builder
+ENV PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1
+WORKDIR /build
+COPY pyproject.toml ./
+COPY src ./src
+RUN pip install --upgrade pip wheel && pip install --prefix=/install ".[anthropic,bedrock,temporal,observability]"
+
+FROM python:3.11-slim AS runtime
+RUN useradd --uid 10001 --create-home avengers
+USER 10001
+WORKDIR /home/avengers/app
+COPY --from=builder /install /usr/local
+COPY --chown=10001:10001 src ./src
+COPY --chown=10001:10001 config ./config
+COPY --chown=10001:10001 prompts ./prompts
+ENV PYTHONPATH=/home/avengers/app/src \
+    AVENGERS_CONFIG_DIR=/home/avengers/app/config \
+    AVENGERS_PROMPTS_DIR=/home/avengers/app/prompts \
+    AVENGERS_ENVIRONMENT=prod
+CMD ["python", "-m", "avengers.worker"]

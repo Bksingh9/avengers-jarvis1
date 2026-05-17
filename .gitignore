@@ -11,3 +11,13 @@ __pycache__/
 htmlcov/
 dist/
 build/
+
+# Runtime / dev artifacts
+.memory/
+web/node_modules/
+web/.next/
+web/out/
+web/*.tsbuildinfo
+*.tfstate
+*.tfstate.backup
+.terraform/

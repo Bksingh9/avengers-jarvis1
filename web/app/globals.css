@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 240 10% 6%;
+  --foreground: 0 0% 98%;
+  --card: 240 10% 9%;
+  --card-foreground: 0 0% 98%;
+  --muted: 240 5% 14%;
+  --muted-foreground: 240 5% 65%;
+  --border: 240 6% 16%;
+  --accent: 270 95% 70%;
+  --accent-foreground: 0 0% 100%;
+  --primary: 195 90% 60%;
+  --primary-foreground: 240 10% 6%;
+  --destructive: 0 80% 60%;
+  --warning: 38 92% 55%;
+  --success: 142 71% 45%;
+}
+
+.light {
+  --background: 0 0% 100%;
+  --foreground: 240 10% 6%;
+  --card: 0 0% 98%;
+  --card-foreground: 240 10% 6%;
+  --muted: 240 5% 96%;
+  --muted-foreground: 240 5% 35%;
+  --border: 240 6% 90%;
+  --accent: 270 95% 60%;
+  --accent-foreground: 0 0% 100%;
+  --primary: 195 90% 45%;
+  --primary-foreground: 0 0% 100%;
+}
+
+* { @apply border-border; }
+body {
+  @apply bg-background text-foreground;
+  font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
+  background-image: theme("backgroundImage.grid-glow");
+  background-attachment: fixed;
+}
+
+/* Glassmorphism primitive — used on cards, command palette, sidebar */
+.glass {
+  @apply backdrop-blur-xl;
+  background:
+    linear-gradient(135deg,
+      hsl(var(--card) / 0.55) 0%,
+      hsl(var(--card) / 0.30) 100%);
+  border: 1px solid hsl(var(--border) / 0.6);
+}
+
+.glass-strong {
+  @apply backdrop-blur-2xl;
+  background:
+    linear-gradient(135deg,
+      hsl(var(--card) / 0.75) 0%,
+      hsl(var(--card) / 0.55) 100%);
+  border: 1px solid hsl(var(--border) / 0.8);
+}
+
+/* Shimmer placeholder used while a brief section is streaming */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted) / 0.4) 0%,
+    hsl(var(--muted) / 0.8) 50%,
+    hsl(var(--muted) / 0.4) 100%
+  );
+  background-size: 200% 100%;
+  @apply animate-shimmer rounded-md;
+}
+
+/* Mono numerals for the cost ticker */
+.num { font-variant-numeric: tabular-nums; }
+
+/* Scrollbar — subtle, accent on hover */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--primary) / 0.7); }

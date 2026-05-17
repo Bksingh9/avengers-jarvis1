@@ -1,0 +1,73 @@
+# Default values for AVENGERS. Override per environment with -f values.<env>.yaml.
+
+image:
+  repository: ghcr.io/avengers/api
+  workerRepository: ghcr.io/avengers/worker
+  tag: 0.1.0
+  pullPolicy: IfNotPresent
+
+api:
+  replicas: 3
+  resources:
+    requests: { cpu: "500m", memory: "1Gi" }
+    limits:   { cpu: "2",    memory: "4Gi" }
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 8080
+  hpa:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 30
+    targetCPU: 70
+
+worker:
+  replicas: 4
+  resources:
+    requests: { cpu: "1",    memory: "2Gi" }
+    limits:   { cpu: "4",    memory: "8Gi" }
+  hpa:
+    enabled: true
+    minReplicas: 4
+    maxReplicas: 100
+    targetCPU: 60
+
+env:
+  AVENGERS_ENVIRONMENT: prod
+  AVENGERS_LOG_LEVEL: INFO
+
+# Pull cohort secrets from CSI / external-secrets — values here are env-var names only.
+externalSecrets:
+  enabled: true
+  refreshInterval: 1h
+  store:
+    name: aws-secretsmanager
+    kind: ClusterSecretStore
+  items: []  # supplied per-tenant overlay
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    - host: api.avengers.example.com
+      paths: [{ path: /, pathType: Prefix }]
+  tls:
+    - hosts: [api.avengers.example.com]
+      secretName: avengers-tls
+
+serviceAccount:
+  create: true
+  annotations: {}  # add eks.amazonaws.com/role-arn for IRSA
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  fsGroup: 10001
+
+securityContext:
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities: { drop: [ALL] }
+
+networkPolicy:
+  enabled: true

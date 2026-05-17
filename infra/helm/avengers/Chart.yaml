@@ -1,0 +1,9 @@
+apiVersion: v2
+name: avengers
+description: Multi-tenant multi-agent daily-briefing and command platform.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords: [ai, agents, briefing, multi-tenant]
+maintainers:
+  - name: AVENGERS Platform Team

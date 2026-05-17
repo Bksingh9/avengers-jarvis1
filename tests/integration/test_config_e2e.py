@@ -20,6 +20,13 @@ def test_sample_configs_load():
     assert "no_pii_to_external_search" in a.policies
     assert a.evals is not None and a.evals.gate_score == 0.85
 
+    # All six specialists ship as YAML configs after the §13/§14 batch
+    agent_ids = {a.id for a in store.all_agents()}
+    assert {"meetings", "markets", "security", "research", "content", "operations"} <= agent_ids
+
+    # Security agent has the higher 0.90 gate per spec §10.4
+    assert store.agent("security").evals.gate_score == 0.90  # type: ignore[union-attr]
+
     c = store.connector("exa_search")
     assert c.caching.ttl_seconds == 600
 

@@ -1,0 +1,20 @@
+id: meetings
+display_name: Meetings
+version: 1.0.0
+description: Yesterday outcomes, today prep, and open action items.
+model:
+  primary: anthropic:claude-sonnet-4-6
+  fallback: anthropic:claude-haiku-4-5
+  temperature: 0.2
+prompt: prompts/meetings.md
+input_schema: MeetingsInput
+output_schema: MeetingDigest
+tools:
+  mcp: [gcal]
+limits:
+  max_turns: 6
+  wallclock_seconds: 60
+policies: [cite_every_claim, no_pii_to_external_search]
+evals:
+  set: evals/cases/meetings/*.yaml
+  gate_score: 0.85

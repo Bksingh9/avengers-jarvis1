@@ -1,0 +1,45 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.api
+    ports: ["8080:8080"]
+    environment:
+      AVENGERS_ENVIRONMENT: dev
+      AVENGERS_LOG_LEVEL: DEBUG
+    volumes:
+      - ./config:/home/avengers/app/config:ro
+      - ./prompts:/home/avengers/app/prompts:ro
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    ports: ["3000:3000"]
+    environment:
+      NEXT_PUBLIC_AVENGERS_API: http://api:8080
+      AVENGERS_API_INTERNAL: http://api:8080
+    depends_on: [api]
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: avengers
+      POSTGRES_USER: avengers
+      POSTGRES_PASSWORD: dev
+    ports: ["5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+
+  temporal:
+    image: temporalio/auto-setup:1.24.0
+    ports: ["7233:7233"]
+    environment:
+      DB: postgres12
+      DB_PORT: "5432"
+      POSTGRES_SEEDS: postgres
+      POSTGRES_USER: avengers
+      POSTGRES_PWD: dev
+    depends_on: [postgres]
+
+volumes:
+  pgdata: {}

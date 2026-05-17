@@ -150,17 +150,21 @@ async def test_get_agent(make_client):
 
 
 async def test_trigger_brief_runs_research(container, fake_llm, make_client):
-    src = '[{"text":"x","sources":[{"connector":"c","tool":"t","ref":"r","ts":"2026-05-17T00:00:00+00:00"}]}]'
-    fake_llm.enqueue(
-        Completion(
-            model="m1",
-            output_text='{"topic_deltas":' + src + ',"deep_dive":[]}',
-            stop_reason="end_turn",
-            input_tokens=10,
-            output_tokens=10,
-            cost_usd=0.001,
+    # Six specialists run in parallel from the tenant config; order in which
+    # they pull from the FakeLLM queue is non-deterministic, so enqueue one
+    # universal empty-digest response per agent. Every digest schema uses
+    # default_factory=list, so '{}' validates to all-empty for any of them.
+    for _ in range(6):
+        fake_llm.enqueue(
+            Completion(
+                model="m1",
+                output_text="{}",
+                stop_reason="end_turn",
+                input_tokens=10,
+                output_tokens=10,
+                cost_usd=0.001,
+            )
         )
-    )
     async with make_client() as ac:
         r = await ac.post(
             "/tenants/acme/briefs",
@@ -170,7 +174,10 @@ async def test_trigger_brief_runs_research(container, fake_llm, make_client):
     assert r.status_code == 201, r.text
     body = r.json()
     assert body["for_date"] == "2026-05-17"
-    assert any(s["agent"] == "research" and s["status"] == "ok" for s in body["sections"])
+    # All six enabled specialists should report ok with the universal empty-digest fixture.
+    statuses = {s["agent"]: s["status"] for s in body["sections"]}
+    assert "research" in statuses
+    assert all(v == "ok" for v in statuses.values()), statuses
 
     # Then we can fetch it back
     async with make_client() as ac:

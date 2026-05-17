@@ -1,0 +1,20 @@
+id: operations
+display_name: Operations
+version: 1.0.0
+description: KPI deltas, queue health, on-call status.
+model:
+  primary: anthropic:claude-sonnet-4-6
+  fallback: anthropic:claude-haiku-4-5
+  temperature: 0.2
+prompt: prompts/operations.md
+input_schema: OpsInput
+output_schema: OpsDigest
+tools:
+  mcp: [snowflake, pagerduty, jira, datadog]
+limits:
+  max_turns: 6
+  wallclock_seconds: 60
+policies: [cite_every_claim, block_writes]
+evals:
+  set: evals/cases/operations/*.yaml
+  gate_score: 0.85
