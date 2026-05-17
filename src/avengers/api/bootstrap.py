@@ -21,6 +21,7 @@ from avengers.agents.research import ResearchAgent
 from avengers.agents.security import SecurityAgent
 from avengers.api.app import AppContainer
 from avengers.connectors.base import ConnectorRegistry
+from avengers.connectors.internal_rag import InternalRAGConnector
 from avengers.core.audit import Auditor, InMemoryAuditSink
 from avengers.core.budget import BudgetTracker
 from avengers.core.config_loader import ConfigStore
@@ -87,6 +88,19 @@ def build_container(
         system_prompts=system_prompts,
     )
 
+    memory = FilesystemMemory(memory_root) if memory_root else None
+    # Default the vector store to in-process so /memory/ingest works out of
+    # the box. Production wires PgVectorStore / TurbopufferStore / Pinecone.
+    vector_memory = vector_memory or InMemoryStore()
+
+    # Auto-register the internal_rag connector against the vector store.
+    # Any agent that lists `internal_rag` in its tools.mcp config now gets
+    # a `search` tool — that's the LangChain-style retrieval pattern wired
+    # into the existing typed agent loop. Specialists collect tools lazily
+    # at run() time, so we don't need to instantiate them before this point.
+    if "internal_rag" not in connectors.known():
+        connectors.register(InternalRAGConnector(vector_memory))
+
     specialists = {}
     for agent_cfg in store.all_agents():
         cls = _SPECIALIST_CLASSES.get(agent_cfg.id)
@@ -95,10 +109,6 @@ def build_container(
         specialists[agent_cfg.id] = cls(agent_cfg, deps)
 
     director = Director(deps=deps, specialists=specialists)
-    memory = FilesystemMemory(memory_root) if memory_root else None
-    # Default the vector store to in-process so /memory/ingest works out of
-    # the box. Production wires PgVectorStore / TurbopufferStore / Pinecone.
-    vector_memory = vector_memory or InMemoryStore()
 
     return AppContainer(
         config_store=store,

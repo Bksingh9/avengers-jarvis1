@@ -13,7 +13,8 @@ output_schema: ResearchDigest
 tools:
   builtin: []
   mcp:
-    - exa_search
+    - internal_rag        # check user's ingested docs first (cheap, private)
+    - exa_search          # fall back to the web (gated by no_pii policy)
 limits:
   max_turns: 6
   max_tokens_in: 200000

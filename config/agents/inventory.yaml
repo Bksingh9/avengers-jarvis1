@@ -10,7 +10,7 @@ prompt: prompts/inventory.md
 input_schema: InventoryInput
 output_schema: InventoryDigest
 tools:
-  mcp: [fynd_oms, boltic]
+  mcp: [internal_rag, fynd_oms, boltic]
 limits:
   max_turns: 8
   wallclock_seconds: 60

@@ -1,0 +1,20 @@
+id: internal_rag
+display_name: Internal RAG (vector memory)
+mcp_server: avengers.connectors.internal_rag:server
+auth:
+  type: none
+scopes: [memory.read]
+rbac:
+  required_groups_any: []
+tools:
+  - name: search
+    description: Top-k similarity search over the user's ingested documents.
+    write: false
+    rate_limit_per_min: 120
+  - name: list_recent
+    description: Diagnostic listing of recently ingested items.
+    write: false
+    rate_limit_per_min: 30
+caching:
+  ttl_seconds: 60
+  key_fields: [query, k, purpose]

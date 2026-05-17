@@ -10,7 +10,7 @@ prompt: prompts/operations.md
 input_schema: OpsInput
 output_schema: OpsDigest
 tools:
-  mcp: [snowflake, pagerduty, jira, datadog]
+  mcp: [internal_rag, snowflake, pagerduty, jira, datadog]
 limits:
   max_turns: 6
   wallclock_seconds: 60
