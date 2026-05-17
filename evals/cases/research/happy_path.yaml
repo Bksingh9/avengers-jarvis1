@@ -1,0 +1,38 @@
+id: research_happy_path
+description: Research agent produces a one-claim digest with a real source.
+input:
+  trigger: morning
+  user_id: u1
+connectors: [exa_search]
+scripted_tool_responses:
+  exa_search.search:
+    - title: Sample article
+      url: https://example.com/a
+scripted_llm_responses:
+  - model: m1
+    output_text: |
+      {
+        "topic_deltas": [
+          {
+            "text": "AI agents are accelerating in 2026.",
+            "sources": [
+              {"connector": "exa_search", "tool": "search",
+               "ref": "https://example.com/a", "ts": "2026-05-17T00:00:00+00:00"}
+            ],
+            "confidence": 0.9
+          }
+        ],
+        "deep_dive": []
+      }
+    stop_reason: end_turn
+    input_tokens: 100
+    output_tokens: 60
+    cost_usd: 0.001
+predicates:
+  - scorer: output_parses
+  - scorer: no_errors
+  - scorer: all_claims_cited
+  - scorer: cost_under
+    args: { usd: 0.05 }
+  - scorer: latency_under
+    args: { ms: 5000 }

@@ -1,0 +1,17 @@
+id: research_empty_digest
+description: Agent returns an empty but well-formed digest when there is nothing to report.
+input:
+  trigger: morning
+  user_id: u1
+connectors: [exa_search]
+scripted_llm_responses:
+  - model: m1
+    output_text: '{"topic_deltas": [], "deep_dive": []}'
+    stop_reason: end_turn
+    input_tokens: 30
+    output_tokens: 10
+    cost_usd: 0.0003
+predicates:
+  - scorer: output_parses
+  - scorer: no_errors
+  - scorer: all_claims_cited

@@ -44,6 +44,8 @@ from avengers.core.policy import (
 )
 from avengers.core.tenant import TenantContext
 from avengers.llm.router import LLMRouter
+from avengers.observability.metrics import get_metrics
+from avengers.observability.tracing import get_tracer
 from avengers.schemas.config import AgentConfig
 from avengers.schemas.llm import Message, ToolCall, ToolResult, ToolSchema
 
@@ -97,6 +99,10 @@ class BaseAgent(Generic[TOut]):
         ctx: TenantContext,
     ) -> AgentResult[TOut]:
         t0 = time.monotonic()
+        metrics = get_metrics()
+        tracer = get_tracer()
+        agent_labels = {"agent": self.config.id, "tenant": ctx.tenant_id}
+        metrics.incr("agent.runs", labels=agent_labels)
         tools, tool_index = await self._collect_tools()
         messages: list[Message] = [
             Message(role="system", content=self._system_prompt()),
@@ -239,9 +245,15 @@ class BaseAgent(Generic[TOut]):
                     )
                     continue
 
-                result = await client.invoke(
-                    ToolInvocation(tool=tc.name.split(".", 1)[1], args=tc.arguments), ctx
-                )
+                tool_labels = {**agent_labels, "tool": tc.name}
+                with tracer.span("tool.invoke", attrs=tool_labels):
+                    result = await client.invoke(
+                        ToolInvocation(tool=tc.name.split(".", 1)[1], args=tc.arguments), ctx
+                    )
+                metrics.incr("tool.invocations", labels=tool_labels)
+                metrics.observe("tool.latency_ms", result.latency_ms, labels=tool_labels)
+                if not result.ok:
+                    metrics.incr("tool.errors", labels=tool_labels)
                 # post_tool policies can rewrite the result
                 post_decision = self.deps.policies.evaluate(
                     "post_tool",
@@ -295,6 +307,9 @@ class BaseAgent(Generic[TOut]):
             status = "error" if parsed is None else "partial"
         elif needs_approval:
             status = "partial"
+
+        metrics.observe("agent.latency_ms", latency_ms, labels=agent_labels)
+        metrics.incr(f"agent.status.{status}", labels=agent_labels)
 
         return AgentResult[TOut](
             status=status,

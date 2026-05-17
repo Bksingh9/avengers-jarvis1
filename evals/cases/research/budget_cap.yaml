@@ -1,0 +1,16 @@
+id: research_cost_within_budget
+description: A normal run must stay under the per-call cost ceiling.
+input:
+  trigger: morning
+  user_id: u1
+connectors: [exa_search]
+scripted_llm_responses:
+  - model: m1
+    output_text: '{"topic_deltas": [], "deep_dive": []}'
+    stop_reason: end_turn
+    input_tokens: 50
+    output_tokens: 10
+    cost_usd: 0.002
+predicates:
+  - scorer: cost_under
+    args: { usd: 0.05 }
