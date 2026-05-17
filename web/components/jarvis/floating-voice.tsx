@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Mic, MicOff, Square, Volume2, X } from "lucide-react";
+import { Ear, EarOff, Mic, MicOff, Square, Volume2, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -11,6 +11,7 @@ import {
   stopSpeaking,
   supportsVoice,
 } from "@/lib/jarvis";
+import { useWakeWord } from "@/lib/wake-word";
 import { cn } from "@/lib/utils";
 
 type State = "idle" | "listening" | "thinking" | "speaking";
@@ -86,6 +87,22 @@ export function FloatingVoice() {
     setState("idle");
   }, []);
 
+  // "Hey JARVIS" wake word — opt-in continuous listener. When it fires, we
+  // start the same query-listening flow as a manual orb tap. Disabled
+  // while we're already mid-conversation so the wake listener and the
+  // query listener don't fight for the mic.
+  const wake = useWakeWord(useCallback(() => {
+    if (state === "idle") {
+      toast("JARVIS heard you", { icon: "👂", duration: 1500 });
+      startListening();
+    }
+  }, [state, startListening]));
+
+  // Re-enabling wake-word after a conversation: nothing to do — the hook
+  // automatically restarts on `onend`, which fires when the query
+  // recognition releases the mic. The next user utterance will be the
+  // next wake phrase.
+
   const Icon =
     state === "listening" ? MicOff :
     state === "speaking"  ? Volume2 :
@@ -108,20 +125,55 @@ export function FloatingVoice() {
                 <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
                   JARVIS · voice
                 </span>
-                <button
-                  type="button"
-                  onClick={() => setOpen(false)}
-                  className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
-                  aria-label="Close"
-                >
-                  <X size={14} />
-                </button>
+                <div className="flex items-center gap-1">
+                  {wake.supported && (
+                    <button
+                      type="button"
+                      onClick={() => wake.setEnabled(!wake.enabled)}
+                      className={cn(
+                        "flex items-center gap-1.5 rounded-md px-2 py-1 text-[10px] uppercase tracking-wider transition-colors",
+                        wake.enabled
+                          ? "bg-success/15 text-success ring-1 ring-success/30"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                      )}
+                      title={wake.enabled ? "Always-listening on" : "Enable 'Hey JARVIS' wake word"}
+                    >
+                      {wake.enabled ? <Ear size={11} /> : <EarOff size={11} />}
+                      {wake.enabled
+                        ? wake.active
+                          ? "listening"
+                          : "wake on"
+                        : "wake off"}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setOpen(false)}
+                    className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                    aria-label="Close"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
               </div>
               <div className="max-h-80 overflow-y-auto p-3">
                 {thread.length === 0 ? (
-                  <p className="text-center text-xs text-muted-foreground">
-                    Hold the orb. Ask anything, Cap Brij.
-                  </p>
+                  <div className="space-y-2 text-center text-xs text-muted-foreground">
+                    <p>Hold the orb. Ask anything, Cap Brij.</p>
+                    {wake.supported && (
+                      <p>
+                        Or turn on{" "}
+                        <button
+                          type="button"
+                          onClick={() => wake.setEnabled(!wake.enabled)}
+                          className="text-primary underline-offset-2 hover:underline"
+                        >
+                          &ldquo;Hey JARVIS&rdquo;
+                        </button>{" "}
+                        — hands-free, always listening.
+                      </p>
+                    )}
+                  </div>
                 ) : (
                   <div className="space-y-2">
                     {thread.map((m, i) => (
@@ -184,6 +236,19 @@ export function FloatingVoice() {
             </>
           )}
           <Icon size={22} className="relative z-10" strokeWidth={1.5} />
+          {/* Always-listening indicator — a green dot when the wake word is on */}
+          {wake.enabled && state === "idle" && (
+            <motion.span
+              aria-hidden
+              className={cn(
+                "absolute right-0 top-0 h-3 w-3 rounded-full ring-2 ring-background",
+                wake.active ? "bg-success" : "bg-warning",
+              )}
+              animate={wake.active ? { opacity: [1, 0.4, 1] } : { opacity: 1 }}
+              transition={{ repeat: Infinity, duration: 1.6 }}
+              title={wake.active ? "Listening for 'Hey JARVIS'" : "Wake word ready"}
+            />
+          )}
         </button>
       </div>
     </>
