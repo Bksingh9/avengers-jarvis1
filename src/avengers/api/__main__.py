@@ -161,12 +161,98 @@ class DemoLLMProvider(LLMProvider):
         return "{}"  # safe default — every digest accepts empty
 
 
+class _OpenAIAsAnthropic:
+    """Shim that lets agent YAMLs keep referring to `anthropic:claude-sonnet-4-6`
+    while traffic actually goes to OpenAI.
+
+    The agent YAMLs were written when Anthropic was the default. Rewriting every
+    YAML when the operator picks a different provider is busywork; instead we
+    substitute the model at the call boundary. Model mapping:
+
+        claude-opus-4-7        → gpt-4o          (premium)
+        claude-sonnet-4-6      → gpt-4o-mini     (workhorse, cheaper)
+        claude-haiku-4-5       → gpt-4o-mini     (fast)
+        anything else          → gpt-4o-mini     (safe default)
+
+    All other behaviour is delegated to the underlying OpenAIProvider, so
+    capabilities (tools, json_schema, streaming) are preserved.
+    """
+
+    name = "openai-as-anthropic"
+
+    _MODEL_MAP = {
+        "claude-opus-4-7":   os.environ.get("OPENAI_MODEL_PREMIUM", "gpt-4o"),
+        "claude-sonnet-4-6": os.environ.get("OPENAI_MODEL_DEFAULT", "gpt-4o-mini"),
+        "claude-haiku-4-5":  os.environ.get("OPENAI_MODEL_FAST",    "gpt-4o-mini"),
+    }
+    _FALLBACK = os.environ.get("OPENAI_MODEL_DEFAULT", "gpt-4o-mini")
+
+    def __init__(self, underlying):  # type: ignore[no-untyped-def]
+        self._u = underlying
+
+    def supports(self, capability):  # type: ignore[no-untyped-def]
+        return self._u.supports(capability)
+
+    def estimate_cost_usd(self, in_tokens, out_tokens, model):  # type: ignore[no-untyped-def]
+        return self._u.estimate_cost_usd(in_tokens, out_tokens, self._remap(model))
+
+    async def complete(self, *, model, **kwargs):  # type: ignore[no-untyped-def]
+        return await self._u.complete(model=self._remap(model), **kwargs)
+
+    async def stream(self, *, model, **kwargs):  # type: ignore[no-untyped-def]
+        return await self._u.stream(model=self._remap(model), **kwargs)
+
+    def _remap(self, model: str) -> str:
+        for k, v in self._MODEL_MAP.items():
+            if model.startswith(k):
+                return v
+        return self._FALLBACK
+
+
 def _build():  # type: ignore[no-untyped-def]
-    demo_llm = DemoLLMProvider()
+    """Compose the live container.
+
+    Provider selection:
+      * If OPENAI_API_KEY is set       → real OpenAI provider (gpt-4o-mini default)
+      * If ANTHROPIC_API_KEY is set    → real Anthropic provider (sonnet default)
+      * Otherwise                       → DemoLLMProvider (shaped stub for $0 demo)
+
+    The key is read from the environment ONLY — never from any file. Set it
+    in Render's Environment Variables UI (encrypted at rest); never commit it.
+    """
     reg = LLMRegistry()
-    reg.register("anthropic", lambda: demo_llm)
-    reg.register("fake", lambda: demo_llm)
-    reg.register("demo", lambda: demo_llm)
+    demo_llm = DemoLLMProvider()
+
+    has_openai    = bool(os.environ.get("OPENAI_API_KEY"))
+    has_anthropic = bool(os.environ.get("ANTHROPIC_API_KEY"))
+
+    if has_openai:
+        from avengers.llm.openai_provider import OpenAIProvider
+        openai_provider = OpenAIProvider()
+        # Register `openai` AND alias under `anthropic` so the agent YAMLs
+        # (which reference `anthropic:claude-sonnet-4-6`) get routed to OpenAI.
+        # The model name in the YAML is the SECOND half of the spec — we
+        # override it below by registering a thin shim that ignores the
+        # requested model and uses an OpenAI one instead.
+        reg.register("openai", lambda: openai_provider)
+        reg.register("anthropic", lambda: _OpenAIAsAnthropic(openai_provider))
+        reg.register("demo", lambda: demo_llm)  # keep demo available for fallback
+        reg.register("fake", lambda: demo_llm)
+        print("[__main__] OpenAI provider active (OPENAI_API_KEY set)")
+    elif has_anthropic:
+        from avengers.llm.anthropic_provider import AnthropicProvider
+        anth = AnthropicProvider()
+        reg.register("anthropic", lambda: anth)
+        reg.register("demo", lambda: demo_llm)
+        reg.register("fake", lambda: demo_llm)
+        print("[__main__] Anthropic provider active (ANTHROPIC_API_KEY set)")
+    else:
+        # Demo fallback — shaped digests, $0 cost. The dashboard renders,
+        # but every reply is a "Demo claim — replace with a real LLM" stub.
+        reg.register("anthropic", lambda: demo_llm)
+        reg.register("fake", lambda: demo_llm)
+        reg.register("demo", lambda: demo_llm)
+        print("[__main__] No LLM key set — using DemoLLMProvider stub")
 
     connectors = ConnectorRegistry()
     connectors.register(
